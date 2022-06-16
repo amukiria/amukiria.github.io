@@ -1,2 +1,2 @@
 # amukiria.github.io
-Portfolio Pge
+Portfolio Page
