@@ -5,6 +5,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box; /* Added to control element sizing */
 }
 
 body {
@@ -134,18 +135,6 @@ a:hover {
   transform: rotate(-45deg) translate(10px, -5px);
 }
 
-.hamburger-icon span:first-child {
-  transform: none;
-}
-
-.hamburger-icon span:first-child {
-  opacity: 1;
-}
-
-.hamburger-icon span:first-child {
-  transform: none;
-}
-
 /* SECTIONS */
 
 section {
@@ -158,6 +147,7 @@ section {
 
 .section-container {
   display: flex;
+  gap: 4rem; /* Ensures proper spacing between sections */
 }
 
 /* PROFILE SECTION */
@@ -257,10 +247,6 @@ section {
   border: rgb(255, 255, 255) 0.1rem solid;
 }
 
-.btn-container {
-  gap: 1rem;
-}
-
 /* ABOUT SECTION */
 
 #about {
@@ -285,7 +271,6 @@ section {
 
 .about-pic {
   border-radius: 2rem;
-  
 }
 
 .arrow {
@@ -302,17 +287,6 @@ section {
   border: rgb(53, 53, 53) 0.1rem solid;
   border-color: rgb(163, 163, 163);
   text-align: center;
-}
-
-.section-container {
-  gap: 4rem;
-  height: 80%;
-}
-
-.section__pic-container {
-  height: 400px;
-  width: 400px;
-  margin: auto;
 }
 
 /* EXPERIENCE SECTION */
@@ -358,6 +332,9 @@ article .icon {
 
 #projects {
   position: relative;
+  max-width: 100%; /* Ensures the section does not overflow horizontally */
+  overflow-x:scroll/* Prevents horizontal overflow */
+  
 }
 
 .color-container {
@@ -381,7 +358,7 @@ article .icon {
   border-color: rgb(163, 163, 163);
 }
 
-/* CONTACT */
+/* CONTACT SECTION */
 
 #contact {
   display: flex;
@@ -396,7 +373,7 @@ article .icon {
   border-radius: 2rem;
   border: rgb(53, 53, 53) 0.1rem solid;
   border-color: rgb(163, 163, 163);
-  background: (250, 250, 250);
+  background: rgb(250, 250, 250);
   margin: 2rem auto;
   padding: 0.5rem;
 }
