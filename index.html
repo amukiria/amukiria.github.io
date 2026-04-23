@@ -321,7 +321,7 @@ section {
 /* EPISODES */
 .episodes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   background: var(--border);
   border: 0.5px solid var(--border);
@@ -598,6 +598,10 @@ footer {
 }
 
 /* RESPONSIVE */
+@media (max-width: 1024px) {
+  .episodes-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 768px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
@@ -609,6 +613,7 @@ footer {
   footer { padding: 24px 20px; }
   .hero-platform { flex-wrap: wrap; gap: 16px; }
   .video-section { padding: 40px 20px; }
+  .episodes-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -650,7 +655,7 @@ footer {
 <div class="section-full" id="episodes">
   <div>
     <div class="section-label reveal">THE SERIES</div>
-    <h2 class="section-title reveal">Seven episodes. Seven failures that cannot happen twice.</h2>
+    <h2 class="section-title reveal">Eleven episodes. Eleven failures that cannot happen twice.</h2>
     <p class="section-sub reveal">Each episode is a standalone scenario built from a documented safety failure. The shell handles session management, progression, and scoring. Episodes load on top of it as self-contained modules. No episode starts until the one before it ships.</p>
 
     <div class="episodes-grid reveal">
@@ -703,11 +708,61 @@ footer {
         <div class="ep-title">Line of Fire</div>
         <div class="ep-domain">Struck-by / caught-in hazards</div>
         <div class="ep-standard">ISO 45001 Cl. 6.1 · BBS</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E06</div>
+          <div class="ep-status planned">PLANNED</div>
+        </div>
+        <div class="ep-title">Confined Space Entry</div>
+        <div class="ep-domain">Permit-required spaces · Atmosphere hazards</div>
+        <div class="ep-standard">ISO 45001 · OSHA 1910.146</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E07</div>
+          <div class="ep-status planned">PLANNED</div>
+        </div>
+        <div class="ep-title">Chemical Handling</div>
+        <div class="ep-domain">Hazmat · Toxic substance exposure</div>
+        <div class="ep-standard">GHS · OSHA 1910.1200</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E08</div>
+          <div class="ep-status planned">PLANNED</div>
+        </div>
+        <div class="ep-title">Respiratory Protection</div>
+        <div class="ep-domain">PPE selection · Hazardous atmospheres</div>
+        <div class="ep-standard">ISO 16972 · OSHA 1910.134</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E09</div>
+          <div class="ep-status planned">PLANNED</div>
+        </div>
+        <div class="ep-title">Powered Industrial Trucks</div>
+        <div class="ep-domain">Forklift safety · Warehouse operations</div>
+        <div class="ep-standard">ISO 3691 · OSHA 1910.178</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E10</div>
           <div class="ep-status planned">PLANNED</div>
         </div>
         <div class="ep-title">Stop Work Authority</div>
         <div class="ep-domain">Behaviour-based safety</div>
         <div class="ep-standard">IOGP Report 459</div>
+      </div>
+
+      <div class="episode-card">
+        <div class="ep-header">
+          <div class="ep-num">E11</div>
           <div class="ep-status planned">PLANNED</div>
         </div>
         <div class="ep-title">Disaster Response</div>
@@ -731,7 +786,7 @@ footer {
     </div>
     <div class="stats-grid reveal">
       <div class="stat">
-        <div class="stat-num">7</div>
+        <div class="stat-num">11</div>
         <div class="stat-label">EPISODES PLANNED</div>
       </div>
       <div class="stat">
