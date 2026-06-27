@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Albert Mukiria — Unity Developer · XR · Quest 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:   #0A0F2C;
+      --blue:   #0066FF;
+      --teal:   #0099AA;
+      --purple: #6655DD;
+      --amber:  #EF9F27;
+      --muted:  #7a8ab0;
+      --surface: #0d1235;
+      --surface2: #111840;
+      --border: rgba(102,85,221,0.18);
+      --text: #e8eaf6;
+      --text-dim: #7a8ab0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--navy);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ─── GLOW BLOBS ─── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 600px; height: 600px; background: var(--blue);   top: -200px; left: -200px; }
+    .blob-2 { width: 400px; height: 400px; background: var(--purple); bottom: 100px; right: -100px; }
+    .blob-3 { width: 300px; height: 300px; background: var(--teal);   top: 50%; left: 60%; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(10,15,44,0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo span { color: var(--blue); }
+
+    nav ul {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    nav a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: var(--text); }
+
+    .nav-badge {
+      font-size: 0.7rem;
+      background: rgba(0,153,170,0.15);
+      border: 1px solid rgba(0,153,170,0.4);
+      color: var(--teal);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── SECTIONS ─── */
+    section, header { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    header {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 3rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 1px;
+      background: var(--blue);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--muted);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.85rem 2rem;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #0055dd; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ─── AVAILABILITY PILL ─── */
+    .avail {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 2rem;
+    }
+
+    .avail-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ─── SERVICES ─── */
+    .services-strip {
+      display: flex;
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .service-cell {
+      flex: 1;
+      background: var(--navy);
+      padding: 1.5rem 2rem;
+      min-width: 160px;
+    }
+
+    .service-cell-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.4rem;
+    }
+
+    .service-cell-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─── CONTENT SECTIONS ─── */
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 3rem;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--blue);
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 3rem;
+    }
+
+    h2 em {
+      font-style: normal;
+      color: var(--teal);
+    }
+
+    /* ─── SKILLS GRID ─── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .skill-card {
+      background: var(--surface);
+      padding: 2rem;
+      transition: background 0.2s;
+    }
+
+    .skill-card:hover { background: var(--surface2); }
+
+    .skill-icon {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .skill-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .skill-desc {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 1px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ─── PROJECT FEATURE ─── */
+    .project-feature {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .project-header {
+      padding: 2.5rem 2.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .project-status {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: 1px;
+    }
+
+    .status-build {
+      background: rgba(239,159,39,0.12);
+      border: 1px solid rgba(239,159,39,0.35);
+      color: var(--amber);
+    }
+
+    .project-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      padding: 1.5rem 2.5rem 0.75rem;
+    }
+
+    .project-desc {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+      padding: 0 2.5rem 2rem;
+      max-width: 680px;
+    }
+
+    /* ─── PLATFORM GRID ─── */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+    }
+
+    .platform-card {
+      background: var(--surface2);
+      padding: 1.75rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .platform-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .platform-card.pc::before    { background: var(--blue); }
+    .platform-card.webgl::before { background: var(--teal); }
+    .platform-card.vr::before    { background: var(--purple); }
+    .platform-card.mr::before    { background: var(--amber); }
+
+    .platform-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .platform-card.pc    .platform-label { color: var(--blue); }
+    .platform-card.webgl .platform-label { color: var(--teal); }
+    .platform-card.vr    .platform-label { color: var(--purple); }
+    .platform-card.mr    .platform-label { color: var(--amber); }
+
+    .platform-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .platform-detail {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ─── MEDIA SECTION ─── */
+    .media-section {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem;
+    }
+
+    .media-section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1.5rem;
+    }
+
+    .media-tabs {
+      display: flex;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .media-tab {
+      flex: 1;
+      min-width: 100px;
+      background: var(--navy);
+      padding: 0.65rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .media-tab:hover { background: var(--surface); color: var(--text); }
+    .media-tab.active { background: var(--surface2); color: var(--text); }
+    .media-tab.active.pc    { border-bottom: 2px solid var(--blue); }
+    .media-tab.active.webgl { border-bottom: 2px solid var(--teal); }
+    .media-tab.active.vr    { border-bottom: 2px solid var(--purple); }
+    .media-tab.active.mr    { border-bottom: 2px solid var(--amber); }
+
+    .media-panel { display: none; }
+    .media-panel.active { display: block; }
+
+    .video-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+
+    .video-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .video-placeholder-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--text-dim);
+    }
+
+    .video-placeholder-text {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+
+    .platform-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .platform-action-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.25rem;
+      border-radius: 1px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: default;
+      opacity: 0.5;
+    }
+
+    .platform-action-btn.live {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .platform-action-btn.live:hover {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+
+    .platform-action-btn.play.live  { border-color: var(--teal);   color: var(--teal); }
+    .platform-action-btn.play.live:hover { background: rgba(0,153,170,0.08); }
+    .platform-action-btn.dl.live    { border-color: var(--blue);   color: var(--blue); }
+    .platform-action-btn.dl.live:hover { background: rgba(0,102,255,0.08); }
+    .platform-action-btn.quest.live { border-color: var(--purple); color: var(--purple); }
+    .platform-action-btn.quest.live:hover { background: rgba(102,85,221,0.08); }
+
+    .coming-soon-badge {
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(122,138,176,0.1);
+      border: 1px solid rgba(122,138,176,0.2);
+      color: var(--text-dim);
+      padding: 0.15rem 0.5rem;
+      border-radius: 1px;
+    }
+
+    /* ─── PROJECT INSIGHT ─── */
+    .project-insight {
+      padding: 2rem 2.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .insight-icon { font-size: 1rem; opacity: 0.6; }
+
+    /* ─── ABOUT ─── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.8;
+      margin-bottom: 1.25rem;
+    }
+
+    .about-text p strong { color: var(--text); font-weight: 500; }
+
+    .creds {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .cred-row {
+      background: var(--surface);
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 4rem 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .cred-year {
+      font-size: 0.7rem;
+      color: var(--blue);
+      letter-spacing: 0.06em;
+    }
+
+    .cred-label {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .cred-sub {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 0.15rem;
+    }
+
+    /* ─── AXIRA CALLOUT ─── */
+    .axira-callout {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 2rem;
+      margin-top: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .axira-callout::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--blue), var(--teal));
+    }
+
+    .axira-callout-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .axira-callout p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .axira-callout a {
+      font-size: 0.75rem;
+      color: var(--teal);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+    }
+
+    .axira-callout a:hover { color: var(--text); }
+
+    /* ─── CONTACT ─── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .contact-intro p {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .contact-link-row {
+      background: var(--surface);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .contact-link-row:hover { background: var(--surface2); }
+
+    .contact-link-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .contact-link-value {
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+
+    /* ─── FORM ─── */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 0.85rem 1rem;
+      border-radius: 0;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--blue);
+    }
+
+    .form-group textarea { height: 120px; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--text); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.7s ease both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.35s; }
+    .delay-4 { animation-delay: 0.5s; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      nav ul { display: none; }
+      header { padding: 7rem 1.5rem 3rem; }
+      .section-inner { padding: 4rem 1.5rem; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .platform-grid { grid-template-columns: repeat(2, 1fr); }
+      .services-strip { flex-wrap: wrap; }
+      footer { padding: 1.5rem; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Albert <span>Mukiria</span></a>
+    <ul>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#project">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <span class="nav-badge">Open to Freelance</span>
+  </nav>
+
+  <!-- HERO -->
+  <header>
+    <div class="avail fade-up">
+      <span class="avail-dot"></span>
+      Available for remote work · UTC+3
+    </div>
+    <p class="hero-eyebrow fade-up delay-1">Unity Developer · XR · Quest 3</p>
+    <h1 class="fade-up delay-2">
+      Builder.<br><em>Designer.</em><br>Shipper.
+    </h1>
+    <p class="hero-sub fade-up delay-3">
+      I build Unity games and XR experiences — PC, WebGL, VR, and MR — from a single codebase.
+      Based in Kenya. Working globally.
+    </p>
+    <div class="hero-actions fade-up delay-4">
+      <a href="#project" class="btn btn-primary">View Work</a>
+      <a href="#contact" class="btn btn-ghost">Get in Touch</a>
+    </div>
+  </header>
+
+  <!-- SERVICES STRIP -->
+  <div class="services-strip" style="position:relative;z-index:1;">
+    <div class="service-cell">
+      <div class="service-cell-label">Platform</div>
+      <div class="service-cell-value">PC · WebGL · Quest 3</div>
+    </div>
+    <div class="service-cell">
+      <div class="service-cell-label">Engine</div>
+      <div class="service-cell-value">Unity 6</div>
+    </div>
+    <div class="service-cell">
+      <div class="service-cell-label">XR Mode</div>
+      <div class="service-cell-value">VR · MR Passthrough</div>
+    </div>
+    <div class="service-cell">
+      <div class="service-cell-label">Location</div>
+      <div class="service-cell-value">Remote · UTC+3</div>
+    </div>
+    <div class="service-cell">
+      <div class="service-cell-label">Availability</div>
+      <div class="service-cell-value">Open Now</div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="section-inner">
+      <p class="section-label">Capabilities</p>
+      <h2>What I bring <em>to the table</em></h2>
+      <div class="skills-grid">
+        <div class="skill-card">
+          <div class="skill-icon">◈</div>
+          <div class="skill-name">Unity & C#</div>
+          <div class="skill-desc">Game development, XR experiences, and interactive applications. Quest 3 passthrough MR and full VR. Meta XR SDK. Single codebase, multiple deployment targets.</div>
+          <div class="tags">
+            <span class="tag">Unity 6</span>
+            <span class="tag">C#</span>
+            <span class="tag">Meta XR SDK</span>
+            <span class="tag">Quest 3</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">⬡</div>
+          <div class="skill-name">Extended Reality</div>
+          <div class="skill-desc">Spatial computing, mixed reality design, and XR UX. Hands-on with Quest 3 hardware and passthrough MR. Imisi 3D / AR-VR Africa alumni. Meta Horizon Start member.</div>
+          <div class="tags">
+            <span class="tag">MR</span>
+            <span class="tag">VR</span>
+            <span class="tag">Quest 3</span>
+            <span class="tag">Spatial UX</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">◎</div>
+          <div class="skill-name">WebGL & Browser</div>
+          <div class="skill-desc">Browser-playable Unity games via WebGL. No install, no headset. Frontend development for product interfaces and dashboards.</div>
+          <div class="tags">
+            <span class="tag">Unity WebGL</span>
+            <span class="tag">HTML/CSS</span>
+            <span class="tag">JavaScript</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">◐</div>
+          <div class="skill-name">Product Management</div>
+          <div class="skill-desc">GDD writing, product roadmapping, feature definition, stakeholder communication. Strategy through to shipped experience.</div>
+          <div class="tags">
+            <span class="tag">Roadmapping</span>
+            <span class="tag">GDD</span>
+            <span class="tag">B2B SaaS</span>
+            <span class="tag">Strategy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECT -->
+  <section id="project">
+    <div class="section-inner">
+      <p class="section-label">Work</p>
+      <h2>One game. <em>Four platforms.</em></h2>
+      <div class="project-feature">
+        <div class="project-header">
+          <div>
+            <span class="project-status status-build">In Build</span>
+          </div>
+          <div class="tags">
+            <span class="tag">Unity 6</span>
+            <span class="tag">Meta XR SDK</span>
+            <span class="tag">Quest 3</span>
+            <span class="tag">C#</span>
+          </div>
+        </div>
+        <h3 class="project-title">Halloween Ghost Clearing Game</h3>
+        <p class="project-desc">
+          A single Unity 6 project, deployed to four targets: PC standalone, WebGL in the browser, Quest 3 full VR, and Quest 3 MR passthrough — your physical space becomes the haunted environment. Built with the Poly Halloween Pack. The point is platform versatility from one codebase.
+        </p>
+        <div class="platform-grid">
+          <div class="platform-card pc">
+            <div class="platform-label">Build 01</div>
+            <div class="platform-name">PC Standalone</div>
+            <div class="platform-detail">Desktop build. Mouse + keyboard. Full game loop.</div>
+          </div>
+          <div class="platform-card webgl">
+            <div class="platform-label">Build 02</div>
+            <div class="platform-name">WebGL</div>
+            <div class="platform-detail">Browser-playable. No install. Open and play.</div>
+          </div>
+          <div class="platform-card vr">
+            <div class="platform-label">Build 03</div>
+            <div class="platform-name">Quest 3 VR</div>
+            <div class="platform-detail">Full virtual reality. Immersive 6DoF gameplay.</div>
+          </div>
+          <div class="platform-card mr">
+            <div class="platform-label">Build 04</div>
+            <div class="platform-name">Quest 3 MR</div>
+            <div class="platform-detail">Passthrough mixed reality. Your room. Their ghosts.</div>
+          </div>
+        </div>
+        <!-- MEDIA -->
+        <div class="media-section">
+          <div class="media-section-label">Playthroughs &amp; Links</div>
+
+          <!-- TABS -->
+          <div class="media-tabs">
+            <button class="media-tab pc active" onclick="switchTab('pc', this)">PC</button>
+            <button class="media-tab webgl" onclick="switchTab('webgl', this)">WebGL</button>
+            <button class="media-tab vr" onclick="switchTab('vr', this)">Quest 3 VR</button>
+            <button class="media-tab mr" onclick="switchTab('mr', this)">Quest 3 MR</button>
+          </div>
+
+          <!-- PC -->
+          <div class="media-panel active" id="panel-pc">
+            <div class="video-frame">
+              <!-- Replace the src below with your YouTube embed URL when ready -->
+              <!-- <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe> -->
+              <div class="video-placeholder">
+                <div class="video-placeholder-icon">▶</div>
+                <div class="video-placeholder-text">Playthrough coming soon</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a class="platform-action-btn dl" href="#" title="Coming soon">
+                ↓ Download · PC
+                <span class="coming-soon-badge">Soon</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- WEBGL -->
+          <div class="media-panel" id="panel-webgl">
+            <div class="video-frame">
+              <!-- <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe> -->
+              <div class="video-placeholder">
+                <div class="video-placeholder-icon">▶</div>
+                <div class="video-placeholder-text">Playthrough coming soon</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a class="platform-action-btn play" href="#" title="Coming soon">
+                → Play in Browser
+                <span class="coming-soon-badge">Soon</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- VR -->
+          <div class="media-panel" id="panel-vr">
+            <div class="video-frame">
+              <!-- <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe> -->
+              <div class="video-placeholder">
+                <div class="video-placeholder-icon">▶</div>
+                <div class="video-placeholder-text">Playthrough coming soon</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a class="platform-action-btn quest" href="#" title="Coming soon">
+                ⬡ Sideload · Quest 3
+                <span class="coming-soon-badge">Soon</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- MR -->
+          <div class="media-panel" id="panel-mr">
+            <div class="video-frame">
+              <!-- <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe> -->
+              <div class="video-placeholder">
+                <div class="video-placeholder-icon">▶</div>
+                <div class="video-placeholder-text">Playthrough coming soon</div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <a class="platform-action-btn quest" href="#" title="Coming soon">
+                ⬡ Sideload · Quest 3
+                <span class="coming-soon-badge">Soon</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-insight">
+          <span class="insight-icon">→</span>
+          Domain-specific simulation work (safety training, clinical) is handled exclusively through <a href="https://axiradynamics.com" style="color:var(--teal);text-decoration:none;">Axira Dynamics</a> — not available for hire.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-inner">
+      <p class="section-label">About</p>
+      <h2>The person <em>behind the work</em></h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>
+            I'm Albert Mukiria — a <strong>Unity developer and product thinker</strong> at the intersection of games and immersive technology. I design, build, and ship XR experiences across PC, browser, VR, and MR from a single codebase.
+          </p>
+          <p>
+            My path runs through <strong>computer science, software engineering, and years inside institutions</strong> where I had to conceive the thing, justify the thing, and deliver the thing myself. That combination of strategic ownership and hands-on execution is what I bring to every project.
+          </p>
+          <p>
+            I'm also the founder of <strong>Axira Dynamics</strong> — a B2B SaaS platform for immersive safety and clinical training simulation. Domain-specific simulation work lives there. Everything else — games, WebGL, XR — is available for hire.
+          </p>
+          <div class="axira-callout">
+            <div class="axira-callout-label">Also Building</div>
+            <p>Axira Dynamics — a deep-vertical B2B SaaS platform for immersive safety and clinical training simulation. HazardXR is the flagship product.</p>
+            <a href="https://axiradynamics.com">Visit Axira Dynamics →</a>
+          </div>
+        </div>
+        <div>
+          <div class="creds">
+            <div class="cred-row">
+              <div class="cred-year">MSc</div>
+              <div>
+                <div class="cred-label">Software Engineering</div>
+                <div class="cred-sub">University of Southampton, UK</div>
+              </div>
+            </div>
+            <div class="cred-row">
+              <div class="cred-year">BSc</div>
+              <div>
+                <div class="cred-label">Computer Science</div>
+                <div class="cred-sub">Africa Nazarene University</div>
+              </div>
+            </div>
+            <div class="cred-row">
+              <div class="cred-year">2022</div>
+              <div>
+                <div class="cred-label">XR Cohort Alumni</div>
+                <div class="cred-sub">Imisi 3D / AR-VR Africa</div>
+              </div>
+            </div>
+            <div class="cred-row">
+              <div class="cred-year">Now</div>
+              <div>
+                <div class="cred-label">Meta Horizon Start Member</div>
+                <div class="cred-sub">Meta</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-inner">
+      <p class="section-label">Contact</p>
+      <h2>Let's build <em>something together</em></h2>
+      <div class="contact-grid">
+        <div class="contact-intro">
+          <p>
+            Available for Unity game development, XR experiences (VR and MR), and WebGL browser games. Remote. UTC+3.
+          </p>
+          <div class="contact-links">
+            <a href="https://www.linkedin.com/in/albert-mukiria/" class="contact-link-row" target="_blank" rel="noopener">
+              <span class="contact-link-label">LinkedIn</span>
+              <span class="contact-link-value">Albert Mukiria</span>
+            </a>
+            <a href="https://axiradynamics.com" class="contact-link-row" target="_blank" rel="noopener">
+              <span class="contact-link-label">Company</span>
+              <span class="contact-link-value">axiradynamics.com</span>
+            </a>
+            <a href="https://github.com/amukiria" class="contact-link-row" target="_blank" rel="noopener">
+              <span class="contact-link-label">GitHub</span>
+              <span class="contact-link-value">amukiria</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" placeholder="Name" />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label>What are you building?</label>
+            <textarea placeholder="Tell me about the project..."></textarea>
+          </div>
+          <button class="btn btn-primary" style="width:100%;">Send Message</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">Albert Mukiria</div>
+    <div class="footer-links">
+      <a href="https://axiradynamics.com" target="_blank" rel="noopener">Axira Dynamics</a>
+      <a href="https://www.linkedin.com/in/albert-mukiria/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(id, btn) {
+      document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.media-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + id).classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
