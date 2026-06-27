@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HazardXR — Mixed Reality Industrial Safety Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0F1115;
+      --surface:  #1B1F27;
+      --surface2: #252B36;
+      --cyan:     #33D6FF;
+      --cyan-h:   #3DDCFF;
+      --amber:    #FF8A00;
+      --text:     #F3F5F7;
+      --text-2:   #A5ACB8;
+      --text-3:   #6F7885;
+      --border:   #323845;
+      --border-2: #434B5B;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .grid-bg {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(51,214,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(51,214,255,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── GLOW ── */
+    .blob { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    .blob-1 { width: 500px; height: 500px; background: rgba(51,214,255,0.07); top: -150px; left: -150px; }
+    .blob-2 { width: 350px; height: 350px; background: rgba(255,138,0,0.06); bottom: 100px; right: -100px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(15,17,21,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-back {
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); text-decoration: none; transition: color 0.2s;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-back:hover { color: var(--cyan); }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      color: var(--text); text-decoration: none; letter-spacing: -0.01em;
+    }
+    .nav-logo span { color: var(--cyan); }
+
+    nav ul { display: flex; gap: 2rem; list-style: none; }
+    nav a { font-size: 0.72rem; color: var(--text-3); text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+
+    .nav-badge {
+      font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(255,138,0,0.1); border: 1px solid rgba(255,138,0,0.3);
+      color: var(--amber); padding: 0.25rem 0.75rem;
+    }
+
+    /* ── SECTIONS ── */
+    section, header { position: relative; z-index: 1; }
+
+    /* ── HERO ── */
+    header {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 8rem 3rem 4rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    .avail {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 2rem;
+    }
+    .avail-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--cyan);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.4); }
+    }
+
+    .hero-eyebrow {
+      font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--amber); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: block; width: 2rem; height: 1px; background: var(--amber);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800; line-height: 1.0;
+      letter-spacing: -0.03em; margin-bottom: 1.5rem;
+    }
+    h1 em { font-style: normal; color: var(--cyan); }
+
+    .hero-sub {
+      font-size: 1rem; color: var(--text-2);
+      max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.85rem 2rem; text-decoration: none;
+      transition: all 0.2s; cursor: pointer; border: none; display: inline-block;
+    }
+    .btn-primary { background: var(--cyan); color: var(--bg); }
+    .btn-primary:hover { background: var(--cyan-h); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border-2); }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── SERVICES STRIP ── */
+    .strip {
+      position: relative; z-index: 1;
+      display: flex; gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .strip-cell { flex: 1; background: var(--bg); padding: 1.5rem 2rem; min-width: 140px; }
+    .strip-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.4rem; }
+    .strip-value { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--text); }
+
+    /* ── SECTION COMMON ── */
+    .section-inner { max-width: 1100px; margin: 0 auto; padding: 6rem 3rem; }
+
+    .section-label {
+      font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .section-label::before { content: ''; display: block; width: 1.5rem; height: 1px; background: var(--cyan); }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 3rem;
+    }
+    h2 em { font-style: normal; color: var(--amber); }
+
+    /* ── CONCEPT SECTION ── */
+    .concept-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: var(--border); border: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .concept-cell { background: var(--surface); padding: 2rem; }
+    .concept-cell-label { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+    .concept-cell-body { font-size: 0.88rem; line-height: 1.7; color: var(--text-2); }
+    .concept-cell-body strong { color: var(--text); font-weight: 500; }
+
+    /* ── COMPETENCY MAP ── */
+    .comp-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border); margin-bottom: 3rem;
+    }
+    .comp-cell { background: var(--surface2); padding: 1.75rem 1.5rem; position: relative; overflow: hidden; }
+    .comp-cell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .comp-cell:nth-child(1)::before { background: var(--cyan); }
+    .comp-cell:nth-child(2)::before { background: var(--amber); }
+    .comp-cell:nth-child(3)::before { background: #2ECC71; }
+    .comp-cell:nth-child(4)::before { background: #9B59B6; }
+    .comp-pct { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 0.4rem; }
+    .comp-cell:nth-child(1) .comp-pct { color: var(--cyan); }
+    .comp-cell:nth-child(2) .comp-pct { color: var(--amber); }
+    .comp-cell:nth-child(3) .comp-pct { color: #2ECC71; }
+    .comp-cell:nth-child(4) .comp-pct { color: #9B59B6; }
+    .comp-name { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); }
+    .comp-desc { font-size: 0.72rem; color: var(--text-3); line-height: 1.5; }
+
+    /* ── FLOW STEPS ── */
+    .flow { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 3rem; }
+    .flow-step { background: var(--surface); padding: 1.5rem 2rem; display: flex; align-items: flex-start; gap: 2rem; transition: background 0.2s; }
+    .flow-step:hover { background: var(--surface2); }
+    .flow-num { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--cyan); opacity: 0.4; min-width: 2rem; line-height: 1; }
+    .flow-content {}
+    .flow-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .flow-desc { font-size: 0.78rem; color: var(--text-2); line-height: 1.6; }
+    .flow-signal { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); margin-top: 0.4rem; }
+
+    /* ── RESEARCH BLOCK ── */
+    .research-panel {
+      border: 1px solid rgba(51,214,255,0.2);
+      background: rgba(51,214,255,0.03);
+      padding: 2.5rem; margin-bottom: 3rem;
+      position: relative;
+    }
+    .research-panel::before {
+      content: 'PHD RESEARCH VEHICLE';
+      position: absolute; top: -1px; left: 2rem;
+      background: var(--cyan); color: var(--bg);
+      font-size: 0.62rem; letter-spacing: 0.12em; padding: 0.25rem 0.75rem;
+    }
+    .research-q { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); line-height: 1.4; margin-bottom: 1rem; margin-top: 1rem; }
+    .research-body { font-size: 0.85rem; color: var(--text-2); line-height: 1.7; margin-bottom: 1.5rem; }
+    .research-target { font-size: 0.72rem; color: var(--text-3); }
+    .research-target span { color: var(--cyan); }
+
+    /* ── PLATFORM GRID ── */
+    .platform-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem;
+    }
+    .platform-card { background: var(--surface2); padding: 1.75rem 1.5rem; position: relative; overflow: hidden; }
+    .platform-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .platform-card.mr::before  { background: var(--cyan); }
+    .platform-card.vr::before  { background: var(--amber); }
+    .platform-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .platform-card.mr .platform-label { color: var(--cyan); }
+    .platform-card.vr .platform-label { color: var(--amber); }
+    .platform-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+    .platform-detail { font-size: 0.72rem; color: var(--text-3); line-height: 1.5; }
+
+    /* ── MEDIA TABS ── */
+    .media-section { border-top: 1px solid var(--border); padding: 2.5rem; }
+    .media-section-label { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 1.5rem; }
+    .media-tabs { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; }
+    .media-tab {
+      flex: 1; min-width: 100px; background: var(--bg);
+      padding: 0.65rem 1rem; font-family: 'DM Mono', monospace;
+      font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-3); border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .media-tab:hover { background: var(--surface); color: var(--text); }
+    .media-tab.active { background: var(--surface2); color: var(--text); }
+    .media-tab.active.mr  { border-bottom: 2px solid var(--cyan); }
+    .media-tab.active.vr  { border-bottom: 2px solid var(--amber); }
+    .media-panel { display: none; }
+    .media-panel.active { display: block; }
+
+    .video-frame {
+      background: var(--surface); border: 1px solid var(--border);
+      aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem; overflow: hidden;
+    }
+    .video-frame iframe { width: 100%; height: 100%; border: none; }
+    .video-placeholder { text-align: center; }
+    .video-placeholder-icon { font-size: 2rem; color: var(--text-3); margin-bottom: 0.75rem; }
+    .video-placeholder-text { font-size: 0.78rem; color: var(--text-3); letter-spacing: 0.06em; }
+
+    .platform-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .platform-action-btn {
+      font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.65rem 1.25rem; text-decoration: none;
+      border: 1px solid var(--border-2); color: var(--text-2);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .platform-action-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .coming-soon-badge {
+      font-size: 0.58rem; background: rgba(255,138,0,0.1);
+      border: 1px solid rgba(255,138,0,0.3); color: var(--amber);
+      padding: 0.1rem 0.4rem; letter-spacing: 0.08em;
+    }
+
+    .project-insight {
+      border-top: 1px solid var(--border); padding: 1.5rem 2.5rem;
+      font-size: 0.78rem; color: var(--text-3); line-height: 1.6;
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .insight-icon { color: var(--cyan); flex-shrink: 0; }
+
+    /* ── STACK GRID ── */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .stack-cell { background: var(--surface); padding: 1.5rem; }
+    .stack-cell-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+    .stack-items { font-size: 0.8rem; color: var(--text-2); line-height: 1.9; }
+    .stack-items strong { color: var(--text); font-weight: 500; }
+
+    /* ── ABOUT ── */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+    .about-text p { font-size: 0.88rem; color: var(--text-2); line-height: 1.8; margin-bottom: 1.25rem; }
+    .about-text strong { color: var(--text); font-weight: 500; }
+
+    .axira-callout {
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 1.5rem; margin-top: 2rem;
+    }
+    .axira-callout-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); margin-bottom: 0.75rem; }
+    .axira-callout p { font-size: 0.82rem; color: var(--text-2); line-height: 1.6; margin-bottom: 1rem; }
+    .axira-callout a { font-size: 0.75rem; color: var(--cyan); text-decoration: none; letter-spacing: 0.06em; }
+    .axira-callout a:hover { color: var(--cyan-h); }
+
+    .creds { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .cred-row { background: var(--surface); padding: 1.25rem 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; transition: background 0.2s; }
+    .cred-row:hover { background: var(--surface2); }
+    .cred-year { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--cyan); min-width: 2.5rem; }
+    .cred-label { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; }
+    .cred-sub { font-size: 0.7rem; color: var(--text-3); }
+
+    /* ── CONTACT ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+    .contact-intro p { font-size: 0.88rem; color: var(--text-2); line-height: 1.7; margin-bottom: 2rem; }
+    .contact-links { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .contact-link-row {
+      background: var(--surface); padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .contact-link-row:hover { background: var(--surface2); }
+    .contact-link-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+    .contact-link-value { font-size: 0.8rem; color: var(--text); }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.5rem; }
+    .form-group input, .form-group textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem;
+      padding: 0.85rem 1rem; outline: none; transition: border-color 0.2s; resize: none;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--cyan); }
+    .form-group textarea { height: 120px; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border); background: #0A0D12;
+      padding: 2rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-brand { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text-3); }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--cyan); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.7s ease both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.35s; }
+    .delay-4 { animation-delay: 0.5s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      nav ul { display: none; }
+      header { padding: 7rem 1.5rem 3rem; }
+      .section-inner { padding: 4rem 1.5rem; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .concept-grid, .comp-grid, .platform-grid { grid-template-columns: 1fr; }
+      .strip { flex-wrap: wrap; }
+      footer { padding: 1.5rem; flex-direction: column; align-items: flex-start; }
+      .media-section { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="https://amukiria.github.io/" class="nav-back">← Portfolio</a>
+  <a href="#" class="nav-logo">Hazard<span>XR</span></a>
+  <ul>
+    <li><a href="#concept">Concept</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <span class="nav-badge">In Development</span>
+</nav>
+
+<!-- HERO -->
+<header>
+  <div class="avail fade-up">
+    <span class="avail-dot"></span>
+    Episode 01 · Fire Safety · In Active Development
+  </div>
+  <p class="hero-eyebrow fade-up delay-1">Mixed Reality · Industrial Safety Training · Meta Quest 3</p>
+  <h1 class="fade-up delay-2">
+    Enter the hazard.<br><em>Not a simulation.</em><br>The real thing.
+  </h1>
+  <p class="hero-sub fade-up delay-3">
+    HazardXR puts trainees inside the hazard — in their actual space, using passthrough MR. They identify it, respond to it, and get scored on accuracy, sequence, and reaction time. Those scores determine what they face next.
+  </p>
+  <div class="hero-actions fade-up delay-4">
+    <a href="#concept" class="btn btn-primary">See the Concept</a>
+    <a href="#research" class="btn btn-outline">Research Angle</a>
+  </div>
+</header>
+
+<!-- STRIP -->
+<div class="strip">
+  <div class="strip-cell"><div class="strip-label">Platform</div><div class="strip-value">Meta Quest 3</div></div>
+  <div class="strip-cell"><div class="strip-label">Mode</div><div class="strip-value">MR Passthrough</div></div>
+  <div class="strip-cell"><div class="strip-label">Engine</div><div class="strip-value">Unity 6000.4</div></div>
+  <div class="strip-cell"><div class="strip-label">SDK</div><div class="strip-value">Meta XR SDK 203</div></div>
+  <div class="strip-cell"><div class="strip-label">Standard</div><div class="strip-value">NFPA 10 / OSHA</div></div>
+  <div class="strip-cell"><div class="strip-label">Status</div><div class="strip-value">E01 In Build</div></div>
+</div>
+
+<!-- CONCEPT -->
+<section id="concept">
+  <div class="section-inner">
+    <p class="section-label">The Concept</p>
+    <h2>Behaviour is <em>the product</em></h2>
+
+    <div class="concept-grid">
+      <div class="concept-cell">
+        <div class="concept-cell-label">The Problem</div>
+        <div class="concept-cell-body">
+          Industrial safety training is delivered through videos, slideshows, and static procedures. Trainees pass a test. They enter a real hazard and freeze — because <strong>knowing the procedure and executing it under pressure are different skills.</strong>
+        </div>
+      </div>
+      <div class="concept-cell">
+        <div class="concept-cell-label">The Approach</div>
+        <div class="concept-cell-body">
+          HazardXR places the trainee inside the hazard in their actual physical environment using MR passthrough. <strong>The real room is the training environment.</strong> No environment reskin. No suspension of disbelief. The hazard appears where they work.
+        </div>
+      </div>
+      <div class="concept-cell">
+        <div class="concept-cell-label">The Scoring</div>
+        <div class="concept-cell-body">
+          Three competency signals are captured per attempt: <strong>selection accuracy</strong> (did they identify the right hazard?), <strong>action sequence</strong> (did they respond in the right order?), and <strong>response time</strong> (how fast under pressure?).
+        </div>
+      </div>
+      <div class="concept-cell">
+        <div class="concept-cell-label">The Routing</div>
+        <div class="concept-cell-body">
+          Scores determine the next scenario. Perform above threshold — advance to a harder variant. Perform below — routed to a corrective scenario targeting the specific failure mode. <strong>Competency-gated, not time-gated.</strong>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">Competency Map · Episode 01</p>
+    <div class="comp-grid">
+      <div class="comp-cell">
+        <div class="comp-pct">20%</div>
+        <div class="comp-name">Recognition</div>
+        <div class="comp-desc">Hazard identification in environment. Correct extinguisher class selection.</div>
+      </div>
+      <div class="comp-cell">
+        <div class="comp-pct">30%</div>
+        <div class="comp-name">Decision</div>
+        <div class="comp-desc">Correct tool and approach selection under time pressure.</div>
+      </div>
+      <div class="comp-cell">
+        <div class="comp-pct">30%</div>
+        <div class="comp-name">Execution</div>
+        <div class="comp-desc">PASS technique performed in correct sequence. 60% floor — mandatory pass.</div>
+      </div>
+      <div class="comp-cell">
+        <div class="comp-pct">20%</div>
+        <div class="comp-name">Judgment</div>
+        <div class="comp-desc">Evacuation decisions. When to fight, when to flee.</div>
+      </div>
+    </div>
+
+    <p class="section-label">The Five-Step Demo Flow</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-content">
+          <div class="flow-title">Scene Entry</div>
+          <div class="flow-desc">Trainee enters their physical space wearing Quest 3. MR passthrough activates. The room anchors via OVRSceneManager — furniture, walls, and floor are detected. A fire hazard spawns in the environment.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-content">
+          <div class="flow-title">Hazard Recognition</div>
+          <div class="flow-desc">Trainee must identify the hazard class before acting. Wrong identification triggers a corrective branch.</div>
+          <div class="flow-signal">Signal: Selection Accuracy</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-content">
+          <div class="flow-title">Extinguisher Selection</div>
+          <div class="flow-desc">Three extinguisher types available. Correct selection required — wrong choice fails the scenario. Matches NFPA 10 extinguisher classification.</div>
+          <div class="flow-signal">Signal: Selection Accuracy</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-content">
+          <div class="flow-title">PASS Technique</div>
+          <div class="flow-desc">Pull — Aim — Squeeze — Sweep. Each step must be executed in sequence and within spatial tolerance. Misordering is logged and scored.</div>
+          <div class="flow-signal">Signal: Action Sequence · Response Time</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">05</div>
+        <div class="flow-content">
+          <div class="flow-title">Outcome Scoring & Routing</div>
+          <div class="flow-desc">Composite score calculated: ≥80% overall with ≥60% on Execution advances. Below threshold routes to a corrective scenario targeting the specific failure. Score logged locally in JSON for E01.</div>
+          <div class="flow-signal">Signal: Composite Score → Next Scenario</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label">Research</p>
+    <h2>The PhD <em>research question</em></h2>
+
+    <div class="research-panel">
+      <div class="research-q">
+        How do competency signals — selection accuracy, action sequence, and response time — determine next scenario routing in spatial simulation for industrial safety training?
+      </div>
+      <div class="research-body">
+        HazardXR is the concrete research vehicle for this question. The simulation is not incidental to the research — it is the research artefact. Every interaction in the experience generates the data that the research question is built around.<br><br>
+        The theoretical umbrella is CASE — Context-Aware Spatial Environments — an emerging framework for spatial systems that adapt to learner behaviour in real-time. "Competency-gated" is a coined distinction: unlike "competency-based" systems that require demonstration before progression, competency-gated systems use live performance signals to route within an experience.
+      </div>
+      <div class="research-target">
+        Priority supervisory target: <span>Spatial Dynamics + Howest + Ghent/imec</span> · Belgium
+      </div>
+    </div>
+
+    <p class="section-label">What This Is Not</p>
+    <div class="concept-grid">
+      <div class="concept-cell">
+        <div class="concept-cell-label">Not Competency-Based</div>
+        <div class="concept-cell-body">Competency-based systems gate progression on demonstrated achievement before moving forward. HazardXR routes <strong>within</strong> the experience based on live performance — corrective or advanced — without stopping the simulation.</div>
+      </div>
+      <div class="concept-cell">
+        <div class="concept-cell-label">Not Adaptive Learning (generic)</div>
+        <div class="concept-cell-body">Generic adaptive learning adjusts content difficulty. HazardXR routes to <strong>specific scenario variants</strong> targeting specific failure modes — the routing logic is domain-specific and grounded in NFPA/OSHA standards.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD -->
+<section id="build" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label">The Build</p>
+    <h2>Two modes. <em>One environment.</em></h2>
+
+    <div class="platform-grid" style="margin-bottom:3rem;">
+      <div class="platform-card mr">
+        <div class="platform-label">Primary Mode</div>
+        <div class="platform-name">MR Passthrough</div>
+        <div class="platform-detail">The trainee's real room is the training environment. Hazards spawn into actual space. Scene understanding via OVRSceneManager detects surfaces and anchors virtual objects to real geometry.</div>
+      </div>
+      <div class="platform-card vr">
+        <div class="platform-label">Secondary Mode</div>
+        <div class="platform-name">Full VR</div>
+        <div class="platform-detail">A fully rendered 3D environment for contexts where the real room isn't available or appropriate. Same interaction model, same scoring — different immersion mode.</div>
+      </div>
+    </div>
+
+    <p class="section-label">Technical Stack</p>
+    <div class="stack-grid" style="margin-bottom:3rem;">
+      <div class="stack-cell">
+        <div class="stack-cell-label">Engine</div>
+        <div class="stack-items"><strong>Unity 6000.4.3f1</strong><br>URP render pipeline<br>Android ARM64 target</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-cell-label">XR</div>
+        <div class="stack-items"><strong>Meta XR SDK 203.0.0</strong><br>Building Blocks<br>OVRSceneManager<br>MR Passthrough</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-cell-label">Scene Understanding</div>
+        <div class="stack-items"><strong>Room mesh detection</strong><br>Surface anchoring<br>Real-world occlusion<br>World locking</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-cell-label">Data</div>
+        <div class="stack-items"><strong>Local JSON logging</strong><br>3 competency signals<br>Per-attempt records<br>PlayFab (deferred)</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-cell-label">Hardware</div>
+        <div class="stack-items"><strong>Meta Quest 3</strong><br>Meta Horizon Start<br>Target: 90fps<br>Android sideload</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-cell-label">Standards</div>
+        <div class="stack-items"><strong>NFPA 10</strong><br>OSHA 1910.157<br>Fire extinguisher<br>classification</div>
+      </div>
+    </div>
+
+    <!-- MEDIA -->
+    <div class="project-insight" style="border:1px solid var(--border); border-bottom:none;">
+      <span class="insight-icon">→</span>
+      <span>E01 is in active development. Demo recordings and build downloads will appear here when available.</span>
+    </div>
+    <div style="border: 1px solid var(--border);">
+      <div class="media-section">
+        <div class="media-section-label">Playthroughs & Builds</div>
+        <div class="media-tabs">
+          <button class="media-tab mr active" onclick="switchTab('mr', this)">Quest 3 MR</button>
+          <button class="media-tab vr" onclick="switchTab('vr', this)">Quest 3 VR</button>
+        </div>
+        <div class="media-panel active" id="panel-mr">
+          <div class="video-frame">
+            <div class="video-placeholder">
+              <div class="video-placeholder-icon">▶</div>
+              <div class="video-placeholder-text">MR Playthrough — Coming Soon</div>
+            </div>
+          </div>
+          <div class="platform-actions">
+            <a class="platform-action-btn" href="#">⬡ Sideload · Quest 3 MR <span class="coming-soon-badge">Soon</span></a>
+          </div>
+        </div>
+        <div class="media-panel" id="panel-vr">
+          <div class="video-frame">
+            <div class="video-placeholder">
+              <div class="video-placeholder-icon">▶</div>
+              <div class="video-placeholder-text">VR Playthrough — Coming Soon</div>
+            </div>
+          </div>
+          <div class="platform-actions">
+            <a class="platform-action-btn" href="#">⬡ Sideload · Quest 3 VR <span class="coming-soon-badge">Soon</span></a>
+          </div>
+        </div>
+      </div>
+      <div class="project-insight">
+        <span class="insight-icon">→</span>
+        HazardXR is developed and distributed through <a href="https://axiradynamics.com" style="color:var(--cyan);text-decoration:none;">Axira Dynamics</a>. Domain-specific simulation work (industrial safety, clinical) is not available for freelance hire.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label">About</p>
+    <h2>The person <em>building this</em></h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm Albert Mukiria — a <strong>Spatial XR developer and researcher</strong> at the intersection of simulation design, human-computer interaction, and real-time 3D. I design, build, and ship XR experiences across VR and MR from a single Unity codebase.</p>
+        <p>My path runs through <strong>computer science, software engineering, and ten years inside institutions</strong> where I had to conceive the thing, justify the thing, and build the thing myself. That combination of strategic ownership and hands-on execution is what HazardXR is built on.</p>
+        <p>I'm also the founder of <strong>Axira Dynamics</strong> — an XR training company targeting developed markets in power/energy, oil & gas, aeronautics, and maritime. HazardXR is the flagship product and PhD research vehicle.</p>
+        <div class="axira-callout">
+          <div class="axira-callout-label">The Company</div>
+          <p>Axira Dynamics — spatial XR training. Behaviour is the product.</p>
+          <a href="https://axiradynamics.com" target="_blank" rel="noopener">Visit Axira Dynamics →</a>
+        </div>
+      </div>
+      <div>
+        <div class="creds">
+          <div class="cred-row">
+            <div class="cred-year">MSc</div>
+            <div>
+              <div class="cred-label">Software Engineering</div>
+              <div class="cred-sub">University of Southampton, UK</div>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cred-year">BSc</div>
+            <div>
+              <div class="cred-label">Computer Science</div>
+              <div class="cred-sub">Africa Nazarene University</div>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cred-year">2022</div>
+            <div>
+              <div class="cred-label">XR Cohort Alumni</div>
+              <div class="cred-sub">Imisi 3D / AR-VR Africa</div>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cred-year">Now</div>
+            <div>
+              <div class="cred-label">Meta Horizon Start Member</div>
+              <div class="cred-sub">Meta</div>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cred-year">PhD</div>
+            <div>
+              <div class="cred-label">Spatial Computing Research</div>
+              <div class="cred-sub">Targeting EU institutions · 2025–26</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label">Contact</p>
+    <h2>Let's talk <em>spatial computing</em></h2>
+    <div class="contact-grid">
+      <div class="contact-intro">
+        <p>Available for XR development, spatial simulation consulting, and research collaboration. Remote. UTC+3.</p>
+        <div class="contact-links">
+          <a href="mailto:albert.mukiria@gmail.com" class="contact-link-row">
+            <span class="contact-link-label">Email</span>
+            <span class="contact-link-value">albert.mukiria@gmail.com</span>
+          </a>
+          <a href="https://www.linkedin.com/in/albert-mukiria/" class="contact-link-row" target="_blank" rel="noopener">
+            <span class="contact-link-label">LinkedIn</span>
+            <span class="contact-link-value">Albert Mukiria</span>
+          </a>
+          <a href="https://axiradynamics.com" class="contact-link-row" target="_blank" rel="noopener">
+            <span class="contact-link-label">Company</span>
+            <span class="contact-link-value">axiradynamics.com</span>
+          </a>
+          <a href="https://github.com/amukiria" class="contact-link-row" target="_blank" rel="noopener">
+            <span class="contact-link-label">GitHub</span>
+            <span class="contact-link-value">amukiria</span>
+          </a>
+          <a href="https://amukiria.github.io/" class="contact-link-row">
+            <span class="contact-link-label">Portfolio</span>
+            <span class="contact-link-value">amukiria.github.io</span>
+          </a>
+        </div>
+      </div>
+      <div>
+        <div class="form-group"><label>Your Name</label><input type="text" placeholder="Name"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>What are you working on?</label><textarea placeholder="Tell me about the project or collaboration..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;">Send Message</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">HazardXR · Axira Dynamics</div>
+  <div class="footer-links">
+    <a href="https://amukiria.github.io/">Portfolio</a>
+    <a href="https://axiradynamics.com" target="_blank" rel="noopener">Axira Dynamics</a>
+    <a href="https://www.linkedin.com/in/albert-mukiria/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="mailto:albert.mukiria@gmail.com">Email</a>
+  </div>
+</footer>
+
+<script>
+  function switchTab(id, btn) {
+    document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.media-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + id).classList.add('active');
+  }
+</script>
+
+</body>
+</html>
